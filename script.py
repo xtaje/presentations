@@ -6,12 +6,9 @@ import cStringIO
 STOCK_SYMBOLS=["MMM", "GOOG", "NFLX"] # and so on ...
 THRESHOLD = 0.5
 
-def find_bad_articles(bucket_name, batch_size=100):
-    s3 = boto3.resource('s3', config.aws_key, config.aws_secret)
-    objects = s3.Bucket(bucket_name).objects
-    for obj in objects.page_size(batch_size):
-        buf = cStringIO.StringIO()
-        obj.downloadfileobj(buf)
+def find_bad_articles(bucket_name, fetcher):
+
+    for key, data in fetcher.items():
         words = buf.getvalue().split()
 
         limit = THRESHOLD * len(words)
@@ -20,4 +17,14 @@ def find_bad_articles(bucket_name, batch_size=100):
                limit -=1 
 
             if limit <= 0:
-                yield obj.key
+                yield key
+
+class DataFetcher(object):
+    def __init__(self, bucket_name, aws_key, aws_secret, batch_size=100):
+        self._conn = boto3.resource('s3', aws_key, aws_secret)
+        self._bucket = self._conn.Bucket(bucket_name)
+
+    def items(self):
+        buf = cStringIO.StringIO()
+        for obj in self._bucket.objects.page_size(self._batch_size):
+            yield key, obj.downloadfileobj(buf)
