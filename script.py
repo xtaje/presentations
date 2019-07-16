@@ -7,10 +7,9 @@ STOCK_SYMBOLS=["MMM", "GOOG", "NFLX"] # and so on ...
 THRESHOLD = 0.5
 
 def find_bad_articles(bucket_name, batch_size): 
-    fetched = fetch_objects(bucket_name, batch_size)
-    return _find_bad_articles(bucket_name, fetched)
+    return _find_bad_articles(fetch_objects(bucket_name, batch_size, s3))
 
-def _find_bad_articles(bucket_name, fetched_objects):
+def _find_bad_articles(fetched_objects):
     for key, text in fetched_objects:
         words = text.split()
         limit = THRESHOLD * len(words)
@@ -21,8 +20,7 @@ def _find_bad_articles(bucket_name, fetched_objects):
             if limit <= 0:
                 yield key
 
-def fetch_objects(bucket_name, batch_size):
-    s3 = boto3.resource('s3', config.aws_key, config.aws_secret)
+def fetch_objects(bucket_name, batch_size, s3):
     objects = s3.Bucket(bucket_name).objects
     for obj in objects.page_size(batch_size)
         buf = cStringIO.StringIO()
