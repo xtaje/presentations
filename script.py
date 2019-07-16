@@ -6,9 +6,12 @@ import cStringIO
 STOCK_SYMBOLS=["MMM", "GOOG", "NFLX"] # and so on ...
 THRESHOLD = 0.5
 
-def find_bad_articles(bucket_name, batch_size=100):
-    objects = fetch_objects(bucket_name, batch_size)
-    for key, text in objects:
+def find_bad_articles(bucket_name, batch_size): 
+    fetched = fetch_objects(bucket_name, batch_size)
+    return _find_bad_articles(bucket_name, fetched)
+
+def _find_bad_articles(bucket_name, fetched_objects):
+    for key, text in fetched_objects:
         words = text.split()
         limit = THRESHOLD * len(words)
         for w in words:
