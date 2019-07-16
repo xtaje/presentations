@@ -1,12 +1,10 @@
 import unittest
-from moto import mock_s3
+import mock
 
 
 class TestBadArticleFinder(unittest.TestCase):
-    @mock_s3
-    def test_find_bad_articles(self):
-        conn = boto3.resource('s3', region_name='us-east-1')
-        conn.create_bucket(Bucket="my_bucket")
+    @mock.patch("script.fetch_objcext", autospec=True)
+    def test_find_bad_articles(self, fetch_objects):
 
         bucket_name = "my_bucket"
 
