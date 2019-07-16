@@ -1,14 +1,23 @@
+from __future__ import print_function
 import config
 import boto3
+import cStringIO
 
+STOCK_SYMBOLS=["MMM", "GOOG", "NFLX"] # and so on ...
+THRESHOLD = 0.5
 
+def find_bad_articles(bucket_name, batch_size=100):
+    s3 = boto3.resource('s3')
+    objects = s3.Bucket(bucket_name).objects
+    for obj in objects.page_size(batch_size):
+        buf = cStringIO.StringIO()
+        obj.downloadfileobj(buf)
+        words = buf.getvalue().split()
 
-def find_bad_articles_2(bucket_name):
-    client = boto3.client('s3', config.get_access_key(), config.get_secret_key())
-    paginator = client.get_paginator('list_objects')
+        limit = THRESHOLD * len(words)
+        for w in words:
+            if w in STOCK_SYMBOLS:
+               limit -=1 
 
-    page_iterator = paginator.paginate(bucket_name)
-    for page in page_iterator:
-        for item in page['Contents']:
-            key, sz = item['Key'], item['Size']
-            # Do something here
+            if limit <= 0:
+                print("Bad file detected %s", obj.key)
