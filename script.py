@@ -6,7 +6,7 @@ import cStringIO
 STOCK_SYMBOLS=["MMM", "GOOG", "NFLX"] # and so on ...
 THRESHOLD = 0.5
 
-def find_bad_articles(bucket_name, batch_size=100):
+def find_bad_articles(bucket_name, batch_size=100, boto3=boto3):
     s3 = boto3.resource('s3', config.aws_key, config.aws_secret)
     objects = s3.Bucket(bucket_name).objects
     for obj in objects.page_size(batch_size):
