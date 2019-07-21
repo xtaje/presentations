@@ -1,23 +1,47 @@
 from __future__ import print_function
-import config
+#import config
 import boto3
-import cStringIO
+import io
+import pprint
 
-STOCK_SYMBOLS=["MMM", "GOOG", "NFLX"] # and so on ...
-THRESHOLD = 0.5
+THRESHOLD = 0.1
+with open("stock_symbols.txt") as fobj:
+    STOCK_SYMBOLS=[line.strip() for line in fobj.readlines()]
+
+pp = pprint.PrettyPrinter(indent=4)
 
 def find_bad_articles(bucket_name, batch_size=100):
-    s3 = boto3.resource('s3', config.aws_key, config.aws_secret)
-    objects = s3.Bucket(bucket_name).objects
-    for obj in objects.page_size(batch_size):
-        buf = cStringIO.StringIO()
-        obj.downloadfileobj(buf)
-        words = buf.getvalue().split()
+    client = boto3.client('s3', region_name="us-east-2")
+    paginator = client.get_paginator('list_objects')
+    operation_parameters = {'Bucket': bucket_name, 'Prefix': 'news'}
+    page_iterator = paginator.paginate(**operation_parameters)
+    for page in page_iterator:
+        contents = page['Contents']
+        for item in contents:
+            key = item['Key']
+            if key == "news/":
+                continue
 
-        limit = THRESHOLD * len(words)
-        for w in words:
-            if w in STOCK_SYMBOLS:
-               limit -=1 
+            buf = io.BytesIO()
+            client.download_fileobj(bucket_name, key, buf)
+            buf.seek(0)
 
-            if limit <= 0:
-                yield obj.key
+            lines = (line.decode().strip() for line in buf.readlines())
+            lines = list(filter(lambda x:x, lines)) # drop empty lines
+
+            ct = 0
+            limit = THRESHOLD * len(lines)
+            while lines and ct < limit:
+                line = lines.pop()
+                first_word = line.split()[0]
+                if first_word in STOCK_SYMBOLS:
+                    ct += 1
+
+
+            print(ct, key, limit)
+            if ct > limit:
+                yield key
+
+
+if __name__ == "__main__":
+    print(list(find_bad_articles("pybay2019")))
