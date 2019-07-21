@@ -11,23 +11,28 @@ BATCH_SIZE=100
 
 def find_bad_articles(bucket_name):
     client = boto3.client('s3', region_name=REGION_NAME)
+
+    for key in get_keys(client, bucket_name):
+        lines = download_key(client, bucket_name, key)
+
+        limit = THRESHOLD * len(lines)
+        while lines and limit:
+            line = lines.pop()
+            first_word = line.split()[0]
+            if first_word in STOCK_SYMBOLS:
+                limit -= 1
+
+        if limit <= 0:
+            yield key
+
+def get_keys(client, bucket_name):
     pages = get_pages(client, bucket_name)
     for page in pages:
         for item in page['Contents']:
             key = item['Key']
             if key == f"{PREFIX}/": #ignore root
                 continue
-
-            lines = download_key(client, bucket_name, key)
-
-            limit = THRESHOLD * len(lines)
-            while lines and limit:
-                line = lines.pop()
-                first_word = line.split()[0]
-                if first_word in STOCK_SYMBOLS:
-                    limit -= 1
-
-            if limit <= 0:
+            else:
                 yield key
 
 def get_pages(client, bucket_name):
