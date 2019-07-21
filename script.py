@@ -11,21 +11,14 @@ BATCH_SIZE=100
 
 def find_bad_articles(bucket_name):
     client = boto3.client('s3', region_name=REGION_NAME)
-    paginator = client.get_paginator('list_objects')
-    page_iterator = paginator.paginate(Bucket=bucket_name, Prefix=PREFIX)
-    for page in page_iterator:
+    pages = get_pages(client, bucket_name)
+    for page in pages:
         for item in page['Contents']:
             key = item['Key']
             if key == f"{PREFIX}/": #ignore root
                 continue
 
-            buf = io.BytesIO()
-            client.download_fileobj(bucket_name, key, buf)
-
-            # Decode and drop empty lines
-            buf.seek(0)
-            lines = (line.decode().strip() for line in buf.readlines())
-            lines = list(filter(lambda x:x, lines))
+            lines = download_key(client, bucket_name, key)
 
             limit = THRESHOLD * len(lines)
             while lines and limit:
@@ -37,6 +30,19 @@ def find_bad_articles(bucket_name):
             if limit <= 0:
                 yield key
 
+def get_pages(client, bucket_name):
+    paginator = client.get_paginator('list_objects')
+    page_iterator = paginator.paginate(Bucket=bucket_name, Prefix=PREFIX)
+    return page_iterator
+
+def download_key(client, bucket_name, key):
+    buf = io.BytesIO()
+    client.download_fileobj(bucket_name, key, buf)
+    buf.seek(0)
+    
+    lines = (line.decode().strip() for line in buf.readlines())
+    lines = list(filter(lambda x:x, lines))
+    return lines
 
 if __name__ == "__main__":
     print(list(find_bad_articles("pybay2019")))
