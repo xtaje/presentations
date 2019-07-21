@@ -7,7 +7,6 @@ with open("stock_symbols.txt") as fobj:
 REGION_NAME="us-east-2"
 THRESHOLD = 0.5
 PREFIX="news"
-BATCH_SIZE=100
 
 def find_bad_articles(bucket_name):
     client = boto3.client('s3', region_name=REGION_NAME)
