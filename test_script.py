@@ -1,24 +1,24 @@
 import unittest
+from script import find_bad_articles
 from moto import mock_s3
+import boto3
 
 
 class TestBadArticleFinder(unittest.TestCase):
     @mock_s3
     def test_find_bad_articles(self):
-        conn = boto3.resource('s3', region_name='us-east-1')
-        conn.create_bucket(Bucket="my_bucket")
-
         bucket_name = "my_bucket"
 
-        conn.put_object(Bucket=bucket_name, Key="good_article", 
+        conn = boto3.resource('s3', region_name='us-east-2')
+        bucket = conn.create_bucket(Bucket="my_bucket")
+        bucket.put_object(Key="news/good_article", 
             Body="Prince Archie and the Queen ...")
 
-        conn.put_object(Bucket=bucket_name, Key="bad_article", 
-            Body=TSLA -13.0% AAPL 0.22% XOM -1.01% GOOG -2.0% V 0.9% TSLA"
+        bucket.put_object(Key="news/bad_article", 
+            Body="TSLA -13.0%\nBAC 0.22%\nXOM -1.01%\nNFLX -2.0%\nV 0.9%\nAMD 0.4%")
 
         bad_articles = list(find_bad_articles(bucket_name))
-        self.assertEqual(1, len(bad_articles))
-        self.assert("bad_article", bad_articles[0])
+        self.assertEqual("news/bad_article", bad_articles[0])
 
 
 
