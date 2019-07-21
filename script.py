@@ -1,4 +1,3 @@
-import boto3
 import io
 
 with open("stock_symbols.txt") as fobj:
@@ -8,7 +7,7 @@ REGION_NAME="us-east-2"
 THRESHOLD = 0.5
 PREFIX="news"
 
-def find_bad_articles(bucket_name):
+def find_bad_articles(bucket_name, boto3):
     client = boto3.client('s3', region_name=REGION_NAME)
 
     for key in get_keys(client, bucket_name):
@@ -49,4 +48,5 @@ def download_key(client, bucket_name, key):
     return lines
 
 if __name__ == "__main__":
-    print(list(find_bad_articles("pybay2019")))
+    import boto3
+    print(list(find_bad_articles("pybay2019", boto3)))
