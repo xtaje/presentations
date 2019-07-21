@@ -5,7 +5,7 @@ with open("stock_symbols.txt") as fobj:
     STOCK_SYMBOLS=[line.strip() for line in fobj.readlines()]
 
 REGION_NAME="us-east-2"
-THRESHOLD = 0.1
+THRESHOLD = 0.5
 PREFIX="news"
 BATCH_SIZE=100
 
@@ -21,9 +21,9 @@ def find_bad_articles(bucket_name):
 
             buf = io.BytesIO()
             client.download_fileobj(bucket_name, key, buf)
-            buf.seek(0)
 
             # Decode and drop empty lines
+            buf.seek(0)
             lines = (line.decode().strip() for line in buf.readlines())
             lines = list(filter(lambda x:x, lines))
 
