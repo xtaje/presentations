@@ -1,45 +1,41 @@
-from __future__ import print_function
-#import config
 import boto3
 import io
-import pprint
 
-THRESHOLD = 0.1
 with open("stock_symbols.txt") as fobj:
     STOCK_SYMBOLS=[line.strip() for line in fobj.readlines()]
 
-pp = pprint.PrettyPrinter(indent=4)
+REGION_NAME="us-east-2"
+THRESHOLD = 0.1
+PREFIX="news"
+BATCH_SIZE=100
 
-def find_bad_articles(bucket_name, batch_size=100):
-    client = boto3.client('s3', region_name="us-east-2")
+def find_bad_articles(bucket_name):
+    client = boto3.client('s3', region_name=REGION_NAME)
     paginator = client.get_paginator('list_objects')
-    operation_parameters = {'Bucket': bucket_name, 'Prefix': 'news'}
+    operation_parameters = {'Bucket': bucket_name, 'Prefix': PREFIX}
     page_iterator = paginator.paginate(**operation_parameters)
     for page in page_iterator:
-        contents = page['Contents']
-        for item in contents:
+        for item in page['Contents']:
             key = item['Key']
-            if key == "news/":
+            if key == f"{PREFIX}/": #ignore root
                 continue
 
             buf = io.BytesIO()
             client.download_fileobj(bucket_name, key, buf)
             buf.seek(0)
 
+            # Decode and drop empty lines
             lines = (line.decode().strip() for line in buf.readlines())
-            lines = list(filter(lambda x:x, lines)) # drop empty lines
+            lines = list(filter(lambda x:x, lines))
 
-            ct = 0
             limit = THRESHOLD * len(lines)
-            while lines and ct < limit:
+            while lines and limit:
                 line = lines.pop()
                 first_word = line.split()[0]
                 if first_word in STOCK_SYMBOLS:
-                    ct += 1
+                    limit -= 1
 
-
-            print(ct, key, limit)
-            if ct > limit:
+            if limit <= 0:
                 yield key
 
 
