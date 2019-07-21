@@ -12,8 +12,7 @@ BATCH_SIZE=100
 def find_bad_articles(bucket_name):
     client = boto3.client('s3', region_name=REGION_NAME)
     paginator = client.get_paginator('list_objects')
-    operation_parameters = {'Bucket': bucket_name, 'Prefix': PREFIX}
-    page_iterator = paginator.paginate(**operation_parameters)
+    page_iterator = paginator.paginate(Bucket=bucket_name, Prefix=PREFIX)
     for page in page_iterator:
         for item in page['Contents']:
             key = item['Key']
