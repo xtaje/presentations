@@ -8,21 +8,25 @@ REGION_NAME="us-east-2"
 THRESHOLD = 0.5
 PREFIX="news"
 
-def find_bad_articles(bucket_name):
+def find_bad_articles(bucket_name, predicate):
     client = boto3.client('s3', region_name=REGION_NAME)
 
     for key in get_keys(client, bucket_name):
         lines = download_key(client, bucket_name, key)
-
-        limit = THRESHOLD * len(lines)
-        while lines and limit:
-            line = lines.pop()
-            first_word = line.split()[0]
-            if first_word in STOCK_SYMBOLS:
-                limit -= 1
-
-        if limit <= 0:
+        if predicate(key, lines):
             yield key
+
+
+
+def is_stock_quotes(key, lines):
+    limit = THRESHOLD * len(lines)
+    while lines and limit:
+        line = lines.pop()
+        first_word = line.split()[0]
+        if first_word in STOCK_SYMBOLS:
+            limit -= 1
+    return limit <= 0
+
 
 def get_keys(client, bucket_name):
     pages = get_pages(client, bucket_name)
@@ -49,4 +53,4 @@ def download_key(client, bucket_name, key):
     return lines
 
 if __name__ == "__main__":
-    print(list(find_bad_articles("pybay2019")))
+    print(list(find_bad_articles("pybay2019", is_stock_quotes)))
