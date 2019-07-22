@@ -29,3 +29,8 @@ class ArticleFetcher(object):
         lines = (line.decode().strip() for line in buf.readlines())
         lines = list(filter(lambda x:x, lines))
         return lines
+
+    def items(self):
+        for key in self.get_keys():
+            lines = self.download_key(key)
+            yield key, lines

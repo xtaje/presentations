@@ -10,9 +10,7 @@ THRESHOLD = 0.5
 PREFIX="news"
 
 def find_bad_articles(fetcher):
-    for key in fetcher.get_keys():
-        lines = fetcher.download_key(key)
-
+    for key, lines in fetcher.items():
         limit = THRESHOLD * len(lines)
         while lines and limit:
             line = lines.pop()
