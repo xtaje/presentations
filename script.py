@@ -22,26 +22,32 @@ def get_file(bucket_name, key):
     lines = list(filter(lambda x:x, lines))
     return lines
 
-def find_bad_articles(bucket_name):
+def get_keys_from_page(page):
+    for item in page['Contents']:
+        key = item['Key']
+        if key == f"{config.PREFIX}/": #ignore root
+            continue
+        yield key
 
-    page_iterator = get_pages(bucket_name, config.PREFIX)
+def get_keys(bucket_name, prefix):
+    page_iterator = get_pages(bucket_name, prefix)
     for page in page_iterator:
-        for item in page['Contents']:
-            key = item['Key']
-            if key == f"{config.PREFIX}/": #ignore root
-                continue
+        for key in get_keys_from_page(page):
+            yield key
 
-            lines = get_file(bucket_name, key)
+def find_bad_articles(bucket_name):
+    for key in get_keys(bucket_name, config.PREFIX):
+        lines = get_file(bucket_name, key)
 
-            limit = config.THRESHOLD * len(lines)
-            while lines and limit:
-                line = lines.pop()
-                first_word = line.split()[0]
-                if first_word in config.stock_symbols():
-                    limit -= 1
+        limit = config.THRESHOLD * len(lines)
+        while lines and limit:
+            line = lines.pop()
+            first_word = line.split()[0]
+            if first_word in config.stock_symbols():
+                limit -= 1
 
-            if limit <= 0:
-                yield key
+        if limit <= 0:
+            yield key
 
 
 if __name__ == "__main__":
