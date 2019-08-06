@@ -2,23 +2,36 @@ import boto3
 import io
 import config
 
-def find_bad_articles(bucket_name):
-    client = boto3.client('s3', region_name=config.REGION_NAME)
+def get_client():
+    return boto3.client('s3', region_name=config.REGION_NAME)
+
+def get_pages(bucket_name, prefix):
+    client = get_client()
     paginator = client.get_paginator('list_objects')
-    page_iterator = paginator.paginate(Bucket=bucket_name, Prefix=config.PREFIX)
+    page_iterator = paginator.paginate(Bucket=bucket_name, Prefix=prefix)
+    return page_iterator
+
+def get_file(bucket_name, key):
+    client = get_client()
+    buf = io.BytesIO()
+    client.download_fileobj(bucket_name, key, buf)
+
+    # Decode and drop empty lines
+    buf.seek(0)
+    lines = (line.decode().strip() for line in buf.readlines())
+    lines = list(filter(lambda x:x, lines))
+    return lines
+
+def find_bad_articles(bucket_name):
+
+    page_iterator = get_pages(bucket_name, config.PREFIX)
     for page in page_iterator:
         for item in page['Contents']:
             key = item['Key']
             if key == f"{config.PREFIX}/": #ignore root
                 continue
 
-            buf = io.BytesIO()
-            client.download_fileobj(bucket_name, key, buf)
-
-            # Decode and drop empty lines
-            buf.seek(0)
-            lines = (line.decode().strip() for line in buf.readlines())
-            lines = list(filter(lambda x:x, lines))
+            lines = get_file(bucket_name, key)
 
             limit = config.THRESHOLD * len(lines)
             while lines and limit:
