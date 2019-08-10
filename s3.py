@@ -1,11 +1,10 @@
-import boto3
 import config
 import io
 
 class S3Archive(object):
-    def __init__(self, bucket_name, prefix, region_name):
+    def __init__(self, bucket_name, prefix, client):
         """Ctor"""
-        self.client = boto3.client('s3', region_name=region_name)
+        self.client = client
         self.bucket_name = bucket_name
         self.prefix = prefix
 

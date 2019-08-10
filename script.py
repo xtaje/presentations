@@ -15,8 +15,10 @@ if __name__ == "__main__":
     def is_stock_quotes(lines):
         return check_article(lines, config.THRESHOLD, config.STOCK_SYMBOLS)
 
+    client = boto3.client('s3', region_name=config.REGION_NAME)
+
     archive = S3Archive("pybay2019", 
                         config.PREFIX,
-                        config.REGION_NAME)
+                        client)
 
     print(list(find_bad_articles(archive, is_stock_quotes)))
