@@ -1,3 +1,5 @@
+import config
+import io
 
 def get_file(client, bucket_name, key):
         buf = io.BytesIO()
@@ -22,3 +24,10 @@ def get_pages(client, bucket_name, prefix):
     paginator = client.get_paginator('list_objects')
     page_iterator = paginator.paginate(Bucket=bucket_name, Prefix=prefix)
     return page_iterator
+
+def keys_from(page):
+    for item in page['Contents']:
+        key = item['Key']
+        if key == f"{config.PREFIX}/": #ignore root
+            continue
+        yield key
