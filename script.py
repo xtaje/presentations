@@ -14,14 +14,7 @@ def find_bad_articles(bucket_name):
 
             lines = get_file(client, bucket_name, key)
 
-            limit = config.THRESHOLD * len(lines)
-            while lines and limit:
-                line = lines.pop()
-                first_word = line.split()[0]
-                if first_word in config.stock_symbols():
-                    limit -= 1
-
-            if limit <= 0:
+            if check_article(lines, config.THRESHOLD, config.STOCK_SYMBOLS):
                 yield key
 
 
