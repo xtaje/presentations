@@ -1,15 +1,17 @@
 import boto3
 import io
 import config
-from util import *
+from util import check_article
+from s3 import S3Archive
 
 def find_bad_articles(bucket_name):
-    client = boto3.client('s3', region_name=config.REGION_NAME)
-    for page in get_pages(client, bucket_name, config.PREFIX):
-        for key in keys_from(page):
-            lines = get_file(client, bucket_name, key)
-            if check_article(lines, config.THRESHOLD, config.STOCK_SYMBOLS):
-                yield key
+    archive = S3Archive(bucket_name, 
+                        config.PREFIX,
+                        config.REGION_NAME)
+    for key in archive.get_keys():
+        lines = archive.get_file(key)
+        if check_article(lines, config.THRESHOLD, config.STOCK_SYMBOLS):
+            yield key
 
 
 if __name__ == "__main__":
