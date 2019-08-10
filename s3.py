@@ -14,6 +14,11 @@ class S3Archive(object):
             for key in self.keys_from(page):
                 yield key
 
+    def items(self):
+        for key in self.get_keys():
+            lines = self.get_file(key)
+            yield key, lines
+
     def get_file(self, key):
         """Get a file and return as non-empty lines"""
         buf = io.BytesIO()
@@ -22,7 +27,8 @@ class S3Archive(object):
         # Decode and drop empty lines
         buf.seek(0)
         lines = (line.decode().strip() for line in buf.readlines())
-        return list(filter(lambda x:x, lines))
+        lines = list(filter(lambda x:x, lines))
+        return lines
 
     def get_pages(self):
         """Get a paginated key list"""

@@ -5,8 +5,7 @@ from util import check_article
 from s3 import S3Archive
 
 def find_bad_articles(archive, predicate):
-    for key in archive.get_keys():
-        lines = archive.get_file(key)
+    for key, lines in archive.items():
         if predicate(lines):
             yield key
 
