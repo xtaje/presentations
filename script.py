@@ -12,13 +12,7 @@ def find_bad_articles(bucket_name):
             if key == f"{config.PREFIX}/": #ignore root
                 continue
 
-            buf = io.BytesIO()
-            client.download_fileobj(bucket_name, key, buf)
-
-            # Decode and drop empty lines
-            buf.seek(0)
-            lines = (line.decode().strip() for line in buf.readlines())
-            lines = list(filter(lambda x:x, lines))
+            lines = get_file(client, bucket_name, key)
 
             limit = config.THRESHOLD * len(lines)
             while lines and limit:
