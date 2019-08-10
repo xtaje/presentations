@@ -17,3 +17,8 @@ def check_article(lines, threshold, stock_symbols):
             limit -= 1
 
     return limit <= 0
+
+def get_pages(client, bucket_name, prefix):
+    paginator = client.get_paginator('list_objects')
+    page_iterator = paginator.paginate(Bucket=bucket_name, Prefix=prefix)
+    return page_iterator
