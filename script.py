@@ -1,7 +1,7 @@
 import boto3
 import io
-import config
-from util import *
+from . import config
+from . util import *
 
 def find_bad_articles(bucket_name):
     client = boto3.client('s3', region_name=config.REGION_NAME)

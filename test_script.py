@@ -1,25 +1,36 @@
 import unittest
-from moto import mock_s3
-
+from unittest import mock
+from mock import MagicMock
+from . script import find_bad_articles
 
 class TestBadArticleFinder(unittest.TestCase):
-    @mock_s3
-    def test_find_bad_articles(self):
-        conn = boto3.resource('s3', region_name='us-east-1')
-        conn.create_bucket(Bucket="my_bucket")
-
+    @mock.patch("presentations.script.get_file")
+    @mock.patch("presentations.script.get_pages")
+    def test_find_bad_articles_mocked(self, get_pages_mock, get_file_mock):
         bucket_name = "my_bucket"
+        page_stub = [{
+                "Contents": [
+                    { "Key": 'news/'},
+                    { "Key": 'news/good.txt'},
+                    { "Key": 'news/bad.txt'}
+                    ]
+        }]
+        get_pages_mock.return_value = page_stub
 
-        conn.put_object(Bucket=bucket_name, Key="good_article", 
-            Body="Prince Archie and the Queen ...")
+        file_stubs = [
+            "lorem ipsum dolorum\n foo baz bar biz\n hello world".split('\n'),
+            "MSFT 99.32\n BAC 22.3\n F 33.2\n".split('\n'),
+        ]
 
-        conn.put_object(Bucket=bucket_name, Key="bad_article", 
-            Body=TSLA -13.0% AAPL 0.22% XOM -1.01% GOOG -2.0% V 0.9% TSLA"
+        get_file_mock.side_effect = file_stubs 
 
         bad_articles = list(find_bad_articles(bucket_name))
         self.assertEqual(1, len(bad_articles))
-        self.assert("bad_article", bad_articles[0])
+        self.assertEqual("news/bad.txt", bad_articles[0])
 
+    def test_find_bad_articles(self):
+        bucket_name = "pybay2019"
 
-
-
+        bad_articles = list(find_bad_articles(bucket_name))
+        self.assertEqual(1, len(bad_articles))
+        self.assertEqual("news/3.txt", bad_articles[0])

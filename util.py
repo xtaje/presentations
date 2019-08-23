@@ -1,4 +1,4 @@
-import config
+from . import config
 import io
 
 def get_file(client, bucket_name, key):
@@ -13,7 +13,9 @@ def get_file(client, bucket_name, key):
 def check_article(lines, threshold, stock_symbols):
     limit = threshold * len(lines)
     while lines and limit:
-        line = lines.pop()
+        line = lines.pop().strip()
+        if not line:
+            continue
         first_word = line.split()[0]
         if first_word in stock_symbols:
             limit -= 1
