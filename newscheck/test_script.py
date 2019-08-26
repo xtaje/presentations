@@ -1,11 +1,11 @@
 import unittest
 from unittest import mock
 from mock import MagicMock
-from . script import find_bad_articles
+from newscheck.core import find_bad_articles
 
 class TestBadArticleFinder(unittest.TestCase):
-    @mock.patch("presentations.script.get_file")
-    @mock.patch("presentations.script.get_pages")
+    @mock.patch("newscheck.core.get_file")
+    @mock.patch("newscheck.core.get_pages")
     def test_find_bad_articles_mocked(self, get_pages_mock, get_file_mock):
         bucket_name = "my_bucket"
         page_stub = [{

@@ -1,3 +1,4 @@
+ticker_string ="""
 MSFT
 BAC
 AMD
@@ -28,3 +29,6 @@ VTR
 DAL
 AXP
 AIV
+"""
+
+TICKER_SYMBOLS=ticker_string.split()
