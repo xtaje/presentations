@@ -33,3 +33,12 @@ def keys_from(page):
         if key == f"{config.PREFIX}/": #ignore root
             continue
         yield key
+
+
+class StockQuotesCheck(object):
+    def __init__(self, threshold, ticker_symbols):
+        self._threshold = threshold
+        self._ticker_symbols = ticker_symbols
+
+    def __call__(self, lines):
+        return check_article(lines, self._threshold, self._ticker_symbols)
