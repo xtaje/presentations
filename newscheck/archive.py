@@ -1,10 +1,9 @@
 import io
-import boto3
 
 
 class S3Archive(object):
-    def __init__(self, bucket_name, prefix, region_name):
-        self._client = boto3.client('s3', region_name=region_name)
+    def __init__(self, bucket_name, prefix, client):
+        self._client=client
         self._bucket_name = bucket_name
         self._prefix = prefix
 
