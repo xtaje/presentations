@@ -10,4 +10,4 @@ if __name__ == "__main__":
         return check_article(lines, config.THRESHOLD, stock.TICKER_SYMBOLS)
     client = boto3.client('s3', region_name=config.REGION_NAME)
     archive = S3Archive("pybay2019", config.PREFIX, client)
-    print(list(find_bad_articles(archive, StockQuotesCheck(config.THRESHOLD, stock.TICKER_SYMBOLS))))
+    print(list(find_bad_articles(archive.items(), lambda key, lines: is_stock_quotes(lines))))

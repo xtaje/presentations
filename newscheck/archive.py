@@ -28,3 +28,9 @@ class S3Archive(object):
             if key == f"{self._prefix}/": #ignore root
                 continue
             yield key
+
+    def items(self):
+        for page in self.get_pages():
+            for key in self.keys_from(page):
+                lines = self.get_file(key)
+                yield key, lines
