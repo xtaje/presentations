@@ -33,4 +33,4 @@ class S3Archive(object):
         for page in self.get_pages():
             for key in self.keys_from(page):
                 lines = self.get_file(key)
-                yield key, lines
+                yield (key, lines)
